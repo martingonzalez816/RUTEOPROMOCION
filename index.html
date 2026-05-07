@@ -300,6 +300,92 @@ body::after{
 }
 .obs-box textarea::placeholder{color:var(--muted)}
 
+
+/* ══ TABS NAVEGACIÓN ══ */
+.tab-nav{
+  display:flex;background:var(--bg2);
+  border-bottom:1px solid var(--border2);
+}
+.tab-btn{
+  flex:1;font-family:var(--F1);font-size:16px;letter-spacing:1.5px;
+  color:var(--muted);background:transparent;border:none;
+  padding:11px 4px;cursor:pointer;
+  border-bottom:3px solid transparent;
+  transition:all .2s;-webkit-tap-highlight-color:transparent;
+}
+.tab-btn.active{color:var(--green);border-bottom-color:var(--green)}
+.tab-content{display:none;flex:1;flex-direction:column;overflow-y:auto}
+.tab-content.active{display:flex}
+
+/* ══ PROGRESO SEMANAL ══ */
+.week-wrap{padding:12px 12px 28px;display:flex;flex-direction:column;gap:12px}
+.week-header{
+  background:var(--card);border:1.5px solid var(--border2);
+  border-radius:14px;padding:16px;text-align:center;
+}
+.week-pct-big{
+  font-family:var(--F1);font-size:64px;color:var(--green);
+  line-height:1;display:block;
+  text-shadow:0 0 20px rgba(0,255,136,0.3);
+}
+.week-pct-label{
+  font-family:var(--F3);font-size:10px;letter-spacing:3px;
+  color:var(--muted);margin-top:4px;
+}
+.day-progress-card{
+  background:var(--card);border:1.5px solid var(--border);
+  border-radius:14px;padding:14px 16px;
+}
+.day-prog-header{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:10px;
+}
+.day-prog-name{
+  font-family:var(--F1);font-size:20px;letter-spacing:2px;
+  color:var(--text);
+}
+.day-prog-name.today{color:var(--cyan)}
+.day-prog-count{
+  font-family:var(--F3);font-size:12px;color:var(--muted);
+  letter-spacing:1px;
+}
+.day-prog-count span{color:var(--green);font-size:14px}
+.day-bar-bg{
+  height:8px;background:var(--bg3);border-radius:50px;
+  overflow:hidden;
+}
+.day-bar-fill{
+  height:100%;border-radius:50px;
+  background:linear-gradient(90deg,var(--green),var(--cyan));
+  box-shadow:0 0 8px rgba(0,255,136,0.4);
+  transition:width .8s cubic-bezier(.4,0,.2,1);
+}
+.day-bar-fill.zero{background:var(--border2);box-shadow:none}
+.day-pct-txt{
+  font-family:var(--F3);font-size:10px;color:var(--muted);
+  margin-top:5px;text-align:right;letter-spacing:1px;
+}
+.day-pct-txt.done{color:var(--green)}
+.sync-row{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 2px;
+}
+.sync-info{font-family:var(--F3);font-size:9px;color:var(--muted);letter-spacing:1px}
+.btn-sync{
+  background:transparent;border:1px solid var(--cyan);
+  color:var(--cyan);font-family:var(--F3);font-size:9px;
+  letter-spacing:1px;padding:5px 10px;border-radius:6px;
+  cursor:pointer;transition:all .2s;
+}
+.btn-sync:hover{background:rgba(0,229,255,0.1)}
+.btn-sync.syncing{opacity:.5;pointer-events:none}
+.sync-dot{
+  display:inline-block;width:6px;height:6px;border-radius:50%;
+  background:var(--green);box-shadow:0 0 6px var(--green);
+  margin-right:5px;animation:glow 1.4s infinite;
+}
+.sync-dot.off{background:var(--muted);box-shadow:none;animation:none}
+
 </style>
 </head>
 <body>
@@ -378,20 +464,41 @@ body::after{
     <button class="btn-exit" onclick="logout()">SALIR</button>
   </div>
   <div class="prog-wrap"><div class="prog-fill" id="prog"></div><div class="prog-pct" id="prog-pct">0%</div></div>
-  <div class="title-row">
-    <div class="route-title">📋 HOJA DE RUTA</div>
-    <div class="gps-pill" id="gps-pill"><span class="gps-dot"></span> GPS ACTIVO</div>
+
+  <div class="tab-nav">
+    <button class="tab-btn active" id="tab-ruta-btn" onclick="switchTab('ruta')">📋 RUTA</button>
+    <button class="tab-btn" id="tab-semana-btn" onclick="switchTab('semana')">📊 SEMANA</button>
   </div>
-  
-<div class="day-selector" id="day-selector">
-  <button class="day-btn" onclick="changeDay(1)">LUN</button>
-  <button class="day-btn" onclick="changeDay(2)">MAR</button>
-  <button class="day-btn" onclick="changeDay(3)">MIÉ</button>
-  <button class="day-btn" onclick="changeDay(4)">JUE</button>
-  <button class="day-btn" onclick="changeDay(5)">VIE</button>
-  <button class="day-btn" onclick="changeDay(6)">SÁB</button>
-</div>
-  <div class="client-list" id="client-list"></div>
+
+  <div class="tab-content active" id="tab-ruta">
+    <div class="title-row">
+      <div class="route-title">📋 HOJA DE RUTA</div>
+      <div class="gps-pill" id="gps-pill"><span class="gps-dot"></span> GPS ACTIVO</div>
+    </div>
+    <div class="day-selector" id="day-selector">
+      <button class="day-btn" onclick="changeDay(1)">LUN</button>
+      <button class="day-btn" onclick="changeDay(2)">MAR</button>
+      <button class="day-btn" onclick="changeDay(3)">MIÉ</button>
+      <button class="day-btn" onclick="changeDay(4)">JUE</button>
+      <button class="day-btn" onclick="changeDay(5)">VIE</button>
+      <button class="day-btn" onclick="changeDay(6)">SÁB</button>
+    </div>
+    <div class="client-list" id="client-list"></div>
+  </div>
+
+  <div class="tab-content" id="tab-semana">
+    <div class="week-wrap">
+      <div class="week-header">
+        <span class="week-pct-big" id="week-pct-big">0%</span>
+        <div class="week-pct-label">CUMPLIMIENTO SEMANAL</div>
+      </div>
+      <div class="sync-row">
+        <div class="sync-info"><span class="sync-dot off" id="sync-dot"></span>ÚLTIMA SYNC: <span id="last-sync">—</span></div>
+        <button class="btn-sync" id="btn-sync" onclick="syncFromSheet()">↻ SINCRONIZAR</button>
+      </div>
+      <div id="week-days-list"></div>
+    </div>
+  </div>
 </div>
 
 <!-- ══ VISIT MODAL ══ -->
@@ -518,6 +625,36 @@ const DIAS=["Domingo","Lunes","Martes","Miércoles","Jueves","Viernes","Sábado"
 
 let curUser=null,curKey=null,pinBuf="",todayList=[],visited={},activeC=null,gps=null,watchId=null,selectedDay=null,realDay=null;
 
+// ── SEMANA: clave única lunes-sábado actual ──
+function getWeekKey(){
+  const now=new Date();
+  const day=now.getDay(); // 0=dom
+  // Calcular lunes de esta semana
+  const diff=day===0?-6:1-day;
+  const mon=new Date(now);mon.setDate(now.getDate()+diff);
+  return `week_${mon.getFullYear()}_${pad(mon.getMonth()+1)}_${pad(mon.getDate())}`;
+}
+
+// ── VISITED: persiste en localStorage con clave de semana ──
+function loadVisited(repKey){
+  const wk=getWeekKey();
+  const stored=localStorage.getItem(`rp_${repKey}_${wk}`);
+  return stored?JSON.parse(stored):{};
+}
+function saveVisited(repKey,data){
+  const wk=getWeekKey();
+  localStorage.setItem(`rp_${repKey}_${wk}`,JSON.stringify(data));
+}
+// Limpia semanas viejas (solo guarda la actual)
+function cleanOldWeeks(repKey){
+  const wk=getWeekKey();
+  Object.keys(localStorage).forEach(k=>{
+    if(k.startsWith(`rp_${repKey}_week_`)&&!k.endsWith(wk)){
+      // No borrar — quedan en sheet, solo ignorar en UI
+    }
+  });
+}
+
 document.addEventListener("DOMContentLoaded",()=>{
   const s=sessionStorage.getItem("rp");
   if(s){const d=JSON.parse(s);curKey=d.k;curUser=USERS[curKey];visited=d.v||{};buildRoute();}
@@ -576,11 +713,15 @@ function buildRoute(){
   const now=new Date();
   realDay=now.getDay()===0?1:now.getDay();
   if(!selectedDay)selectedDay=realDay;
+  // Cargar visitas guardadas de esta semana
+  visited=loadVisited(curKey);
   renderDaySelector();
   todayList=CLIENTS.filter(c=>c.rep===curKey&&c.dia===selectedDay).sort((a,b)=>a.orden-b.orden);
   document.getElementById("top-user").textContent=curUser.name;
   document.getElementById("top-date").textContent=`${DIAS[selectedDay].toUpperCase()} ${pad(now.getDate())}/${pad(now.getMonth()+1)}/${now.getFullYear()}`;
   renderList();updateStats();startGPS();
+  // Sincronizar con Sheet en segundo plano
+  setTimeout(()=>syncFromSheet(true),1500);
 }
 function changeDay(d){
   selectedDay=d;
@@ -601,7 +742,8 @@ function renderList(){
   const el=document.getElementById("client-list");
   if(!todayList.length){el.innerHTML=`<div class="empty"><span class="empty-icon">🎉</span><h3>DÍA LIBRE</h3><p>No hay clientes asignados para hoy</p></div>`;return;}
   el.innerHTML=todayList.map((c,i)=>{
-    const v=visited[c.cod];
+    const vk=c.cod+"_"+selectedDay;
+    const v=visited[vk];
     return `<div class="client-card ${v?"done":""}" onclick="${v?"":"openVisit('"+c.cod+"')"}">
       <div class="c-num">${pad2(i+1)}</div>
       <div class="c-info">
@@ -618,7 +760,8 @@ function renderList(){
   }).join("");
 }
 function updateStats(){
-  const done=Object.keys(visited).length,tot=todayList.length,pct=tot?Math.round(done/tot*100):0;
+  // Contar solo visitas del día seleccionado
+  const done=todayList.filter(c=>visited[c.cod+"_"+selectedDay]).length,tot=todayList.length,pct=tot?Math.round(done/tot*100):0;
   document.getElementById("s-done").textContent=done;
   document.getElementById("s-tot").textContent=tot;
   document.getElementById("prog").style.width=pct+"%";
@@ -709,9 +852,11 @@ function confirmVisit(){
   const now=new Date(),t=`${pad(now.getHours())}:${pad(now.getMinutes())}`;
   const g=activeC._g||{lat:null,lng:null,dist:null,status:"SIN_GPS"};
   const obs=document.getElementById("obs-input").value.trim();
-  visited[activeC.cod]={time:t,obs,...g};
-  const s=JSON.parse(sessionStorage.getItem("rp")||"{}");s.v=visited;sessionStorage.setItem("rp",JSON.stringify(s));
-  sendSheet({fecha:`${pad(now.getDate())}/${pad(now.getMonth()+1)}/${now.getFullYear()}`,hora:t,repositor:curUser.name,cod_cliente:activeC.cod,cliente:activeC.desc,direccion:activeC.dir,tipo:activeC.tipo,lat_cliente:activeC.lat,lng_cliente:activeC.lng,lat_registro:g.lat,lng_registro:g.lng,distancia_m:g.dist,estado_gps:g.status,observaciones:obs});
+  // Clave única: cod_dia — así el mismo cliente en días distintos no se pisa
+  const visitKey=activeC.cod+"_"+selectedDay;
+  visited[visitKey]={time:t,obs,...g,dia:selectedDay,cod:activeC.cod};
+  saveVisited(curKey,visited);
+  sendSheet({fecha:`${pad(now.getDate())}/${pad(now.getMonth()+1)}/${now.getFullYear()}`,hora:t,repositor:curUser.name,cod_cliente:activeC.cod,cliente:activeC.desc,direccion:activeC.dir,tipo:activeC.tipo,lat_cliente:activeC.lat,lng_cliente:activeC.lng,lat_registro:g.lat,lng_registro:g.lng,distancia_m:g.dist,estado_gps:g.status,observaciones:obs,semana:getWeekKey(),dia:selectedDay});
   closeModal();renderList();updateStats();
   toast(g.status==="EN_SITIO"?"✅ VISITA REGISTRADA":"⚠️ VISITA FUERA DE SITIO",g.status!=="EN_SITIO");
 }
@@ -736,7 +881,92 @@ function retryGPS(){
   document.getElementById("btn-ok").disabled=true;
   setTimeout(getPos, 400);
 }
-function logout(){sessionStorage.removeItem("rp");curUser=null;curKey=null;pinBuf="";visited={};todayList=[];selectedDay=null;realDay=null;document.querySelectorAll(".user-btn").forEach(b=>b.classList.remove("sel"));document.getElementById("pin-zone").classList.add("hidden");refreshDots();showScreen("screen-login");}
+
+// ══ TABS ══
+function switchTab(tab){
+  document.querySelectorAll(".tab-content").forEach(t=>t.classList.remove("active"));
+  document.querySelectorAll(".tab-btn").forEach(b=>b.classList.remove("active"));
+  document.getElementById("tab-"+tab).classList.add("active");
+  document.getElementById("tab-"+tab+"-btn").classList.add("active");
+  if(tab==="semana") renderWeekProgress();
+}
+
+// ══ SYNC DESDE SHEET ══
+async function syncFromSheet(silent=false){
+  if(!SHEETS_URL||SHEETS_URL.includes("TU_SCRIPT_ID")) return;
+  const btn=document.getElementById("btn-sync");
+  const dot=document.getElementById("sync-dot");
+  if(btn) btn.classList.add("syncing");
+  if(dot) dot.className="sync-dot off";
+  try{
+    // Llamada GET al Apps Script para leer visitas del repositor esta semana
+    const url=SHEETS_URL.replace("/exec","/exec")+"?action=getVisitas&rep="+encodeURIComponent(curUser.name)+"&semana="+getWeekKey();
+    const resp=await fetch(url,{method:"GET",mode:"cors"});
+    if(!resp.ok) throw new Error("HTTP "+resp.status);
+    const data=await resp.json();
+    if(data.visitas&&typeof data.visitas==="object"){
+      // Merge: las del sheet tienen prioridad solo si no las tenemos localmente
+      // El sheet devuelve visitas con cod y dia — usamos clave cod_dia
+      Object.keys(data.visitas).forEach(k=>{
+        const v=data.visitas[k];
+        const vk=v.cod+"_"+v.dia;
+        if(!visited[vk]) visited[vk]=v;
+      });
+      saveVisited(curKey,visited);
+      renderList();updateStats();
+      if(dot) dot.className="sync-dot";
+      const now=new Date();
+      const syncTime=`${pad(now.getHours())}:${pad(now.getMinutes())}`;
+      const el=document.getElementById("last-sync");
+      if(el) el.textContent=syncTime;
+      if(!silent) toast("✅ SINCRONIZADO CON SHEET");
+    }
+  }catch(e){
+    console.warn("Sync error:",e);
+    if(!silent) toast("⚠️ SIN CONEXIÓN AL SHEET",true);
+    if(dot) dot.className="sync-dot off";
+  }
+  if(btn) btn.classList.remove("syncing");
+}
+
+// ══ PROGRESO SEMANAL ══
+function renderWeekProgress(){
+  const DIAS_NAMES=["","LUNES","MARTES","MIÉRCOLES","JUEVES","VIERNES","SÁBADO"];
+  const allClients=CLIENTS.filter(c=>c.rep===curKey);
+  let totalTodo=0,totalHecho=0;
+  let cardsHTML="";
+  for(let d=1;d<=6;d++){
+    const dayClients=allClients.filter(c=>c.dia===d);
+    if(!dayClients.length) continue;
+    const todo=dayClients.length;
+    const hecho=dayClients.filter(c=>visited[c.cod+"_"+d]).length;
+    totalTodo+=todo;totalHecho+=hecho;
+    const pct=Math.round(hecho/todo*100);
+    const isToday=d===realDay;
+    cardsHTML+=`
+    <div class="day-progress-card">
+      <div class="day-prog-header">
+        <div class="day-prog-name${isToday?" today":""}">${DIAS_NAMES[d]}${isToday?" ◀":""}</div>
+        <div class="day-prog-count"><span>${hecho}</span> / ${todo} clientes</div>
+      </div>
+      <div class="day-bar-bg">
+        <div class="day-bar-fill${hecho===0?" zero":""}" style="width:${pct}%"></div>
+      </div>
+      <div class="day-pct-txt${hecho===todo&&todo>0?" done":""}">${pct}%${hecho===todo&&todo>0?" — COMPLETO ✅":""}</div>
+    </div>`;
+  }
+  const weekPct=totalTodo>0?Math.round(totalHecho/totalTodo*100):0;
+  document.getElementById("week-pct-big").textContent=weekPct+"%";
+  document.getElementById("week-days-list").innerHTML=cardsHTML;
+}
+
+function logout(){
+  // NO borrar localStorage semanal al salir
+  curUser=null;curKey=null;pinBuf="";visited={};todayList=[];selectedDay=null;realDay=null;
+  document.querySelectorAll(".user-btn").forEach(b=>b.classList.remove("sel"));
+  document.getElementById("pin-zone").classList.add("hidden");
+  refreshDots();showScreen("screen-login");
+}
 let toastT;
 function toast(msg,warn=false){const el=document.getElementById("toast");el.textContent=msg;el.className="toast"+(warn?" warn":"");if(toastT)clearTimeout(toastT);toastT=setTimeout(()=>el.classList.add("hidden"),2600);}
 </script>

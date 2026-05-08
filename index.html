@@ -899,31 +899,50 @@ async function syncFromSheet(silent=false){
   if(btn) btn.classList.add("syncing");
   if(dot) dot.className="sync-dot off";
   try{
-    // Llamada GET al Apps Script para leer visitas del repositor esta semana
-    const url=SHEETS_URL.replace("/exec","/exec")+"?action=getVisitas&rep="+encodeURIComponent(curUser.name)+"&semana="+getWeekKey();
-    const resp=await fetch(url,{method:"GET",mode:"cors"});
-    if(!resp.ok) throw new Error("HTTP "+resp.status);
-    const data=await resp.json();
+    // Apps Script: GET sin mode para evitar CORS — funciona con "Acceso: Cualquier persona"
+    const url=SHEETS_URL
+      +"?action=getVisitas"
+      +"&rep="+encodeURIComponent(curUser.name)
+      +"&semana="+getWeekKey();
+
+    const resp=await fetch(url);  // sin mode:cors — fetch directo
+    const text=await resp.text();
+
+    // Apps Script a veces devuelve con prefijo de seguridad — limpiar
+    const clean=text.replace(/^[\)\]\}']+/,"").trim();
+    const data=JSON.parse(clean);
+
     if(data.visitas&&typeof data.visitas==="object"){
-      // Merge: las del sheet tienen prioridad solo si no las tenemos localmente
-      // El sheet devuelve visitas con cod y dia — usamos clave cod_dia
+      let count=0;
       Object.keys(data.visitas).forEach(k=>{
         const v=data.visitas[k];
+        // Normalizar time — el Sheet a veces devuelve objeto Date como string
+        if(v.time){
+          // Si tiene formato de fecha larga (ej: "Sat Dec 30 1899 08:26:00...")
+          // extraer solo HH:MM de donde esté
+          const tmatch=v.time.match(/(\d{1,2}):(\d{2})(?::\d{2})?/);
+          if(tmatch) v.time=tmatch[1].padStart(2,"0")+":"+tmatch[2];
+        }
         const vk=v.cod+"_"+v.dia;
-        if(!visited[vk]) visited[vk]=v;
+        if(!visited[vk]){
+          visited[vk]=v;
+          count++;
+        }
       });
-      saveVisited(curKey,visited);
-      renderList();updateStats();
+      if(count>0){
+        saveVisited(curKey,visited);
+        renderList();updateStats();
+      }
       if(dot) dot.className="sync-dot";
       const now=new Date();
-      const syncTime=`${pad(now.getHours())}:${pad(now.getMinutes())}`;
       const el=document.getElementById("last-sync");
-      if(el) el.textContent=syncTime;
-      if(!silent) toast("✅ SINCRONIZADO CON SHEET");
+      if(el) el.textContent=pad(now.getHours())+":"+pad(now.getMinutes());
+      if(!silent&&count>0) toast("✅ "+count+" VISITA(S) RECUPERADA(S)");
+      else if(!silent) toast("✅ TODO AL DÍA");
     }
   }catch(e){
-    console.warn("Sync error:",e);
-    if(!silent) toast("⚠️ SIN CONEXIÓN AL SHEET",true);
+    console.warn("Sync error:",e.message);
+    if(!silent) toast("⚠️ ERROR AL LEER SHEET",true);
     if(dot) dot.className="sync-dot off";
   }
   if(btn) btn.classList.remove("syncing");
